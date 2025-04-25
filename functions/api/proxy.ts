@@ -30,15 +30,25 @@ export async function onRequestPost(context) {
       body: JSON.stringify({ domain })
     });
 
-    if (!azureResponse.ok) {
-      throw new Error('Network response was not ok');
-    }
     const data = await azureResponse.json();
-    return new Response(JSON.stringify(data), { 
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
 
+    if (azureResponse.ok) {
+      return new Response(
+        JSON.stringify({ success: true, ...data }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, error: data.error || "Azure error", ...data }),
+        {
+          status: azureResponse.status,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
