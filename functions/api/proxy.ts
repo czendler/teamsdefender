@@ -30,10 +30,12 @@ export async function onRequestPost(context) {
       body: JSON.stringify({ domain })
     });
 
+    if (!azureResponse.ok) {
+      throw new Error('Network response was not ok');
+    }
     const data = await azureResponse.json();
-
-    return new Response(JSON.stringify(data), {
-      status: azureResponse.status,
+    return new Response(JSON.stringify(data), { 
+      status: 200,
       headers: { "Content-Type": "application/json" }
     });
 
