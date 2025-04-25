@@ -25,7 +25,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     // Call Azure Function with the secret code
-    const azureFunctionUrl = `https://colombo365.azurewebsites.net/api/dnscheck?code=${env.columbo_az_func_code}`;
+    const azureFunctionUrl = `https://columbo.azurewebsites.net/api/dnscheck?code=${env.columbo_az_func_code}`;
     
     const azureResponse = await fetch(azureFunctionUrl, {
       method: 'POST',
