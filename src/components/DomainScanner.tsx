@@ -128,16 +128,47 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
         </Button>
       </div>
       {result && status === "success" && (
-        <div className="mt-6 p-4 rounded bg-muted text-sm">
-          <div><b>Tenant:</b> {result.tenant}</div>
-          <div><b>Tenant ID:</b> {result.tenant_id}</div>
-          <div><b>Domeny:</b> {Array.isArray(result.domains) ? result.domains.join(", ") : "-"}</div>
-          <div><b>Typ przestrzeni:</b> {result.federation_info?.name_space_type}</div>
-          <div><b>SharePoint:</b> {result.m365_services?.sharepoint ? "TAK" : "NIE"}</div>
-          <div><b>MX:</b> {result.m365_services?.mx_records?.join(", ")}</div>
+        <div className="mt-6 p-4 rounded bg-muted text-sm space-y-2">
+          <div className="font-semibold text-base mb-2">Wynik skanowania domeny</div>
+          <div>
+            <b>Tenant:</b> <span className="text-primary font-mono">{result.tenant}</span>
+          </div>
+          <div>
+            <b>Tenant ID:</b> <span className="font-mono">{result.tenant_id}</span>
+          </div>
+          <div>
+            <b>Domeny:</b> <span className="font-mono">{Array.isArray(result.domains) ? result.domains.join(", ") : "-"}</span>
+          </div>
+          <div>
+            <b>Typ przestrzeni:</b> <span>{result.federation_info?.name_space_type || "-"}</span>
+          </div>
+          <div>
+            <b>Brand:</b> <span>{result.federation_info?.federation_brand_name || "-"}</span>
+          </div>
+          <div>
+            <b>SharePoint:</b> <span className={result.m365_services?.sharepoint ? "text-green-600" : "text-red-600"}>{result.m365_services?.sharepoint ? "TAK" : "NIE"}</span>
+          </div>
+          <div>
+            <b>MX:</b> <span className="font-mono">{result.m365_services?.mx_records?.join(", ")}</span>
+          </div>
+          <div>
+            <b>TXT:</b> <span className="font-mono">{result.m365_services?.txt_records?.join(", ")}</span>
+          </div>
+          <div>
+            <b>Autodiscover:</b> <span className="font-mono">{result.m365_services?.autodiscover || "-"}</span>
+          </div>
+          <div>
+            <b>Teams:</b> <span className={result.communication_services?.teams ? "text-green-600" : "text-red-600"}>{result.communication_services?.teams ? "TAK" : "NIE"}</span>
+          </div>
+          <div>
+            <b>Skype:</b> <span className={result.communication_services?.skype ? "text-green-600" : "text-red-600"}>{result.communication_services?.skype ? "TAK" : "NIE"}</span>
+          </div>
+          <div>
+            <b>Microsoft 365:</b> <span className={result.uses_microsoft_365 ? "text-green-600" : "text-red-600"}>{result.uses_microsoft_365 ? "TAK" : "NIE"}</span>
+          </div>
           <details className="mt-2">
-            <summary>Pokaż surową odpowiedź</summary>
-            <pre className="overflow-x-auto">{JSON.stringify(result, null, 2)}</pre>
+            <summary className="cursor-pointer">Pokaż surową odpowiedź JSON</summary>
+            <pre className="overflow-x-auto text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded mt-2">{JSON.stringify(result, null, 2)}</pre>
           </details>
         </div>
       )}
