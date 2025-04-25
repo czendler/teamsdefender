@@ -57,21 +57,27 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
         body: JSON.stringify({ domain }),
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      const data = await response.json();
+      console.log("ODP Backend:", data); // logowanie odpowiedzi
 
-      const data: ScanResponse = await response.json();
-      if (data.success) {
+      if (response.ok && data.success) {
         setStatus("success");
-        setResult(data); // zapisz całą odpowiedź
+        setResult(data);
         toast.success("Skan domeny zakończony pomyślnie");
       } else {
+        setStatus("error");
+        setResult(data); // zapisz odpowiedź nawet przy błędzie
         throw new Error(data.error || "Wystąpił błąd podczas skanowania");
       }
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Wystąpił nieoczekiwany błąd");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === "string") {
+        setError(err);
+      } else {
+        setError("Wystąpił nieoczekiwany błąd");
+      }
       toast.error("Błąd skanowania domeny");
     }
   };
@@ -122,19 +128,25 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
         </Button>
       </div>
       {result && status === "success" && (
-      <div className="mt-6 p-4 rounded bg-muted text-sm">
-        <div><b>Tenant:</b> {result.tenant}</div>
-        <div><b>Tenant ID:</b> {result.tenant_id}</div>
-        <div><b>Domeny:</b> {Array.isArray(result.domains) ? result.domains.join(", ") : "-"}</div>
-        <div><b>Typ przestrzeni:</b> {result.federation_info?.name_space_type}</div>
-        <div><b>SharePoint:</b> {result.m365_services?.sharepoint ? "TAK" : "NIE"}</div>
-        <div><b>MX:</b> {result.m365_services?.mx_records?.join(", ")}</div>
+        <div className="mt-6 p-4 rounded bg-muted text-sm">
+          <div><b>Tenant:</b> {result.tenant}</div>
+          <div><b>Tenant ID:</b> {result.tenant_id}</div>
+          <div><b>Domeny:</b> {Array.isArray(result.domains) ? result.domains.join(", ") : "-"}</div>
+          <div><b>Typ przestrzeni:</b> {result.federation_info?.name_space_type}</div>
+          <div><b>SharePoint:</b> {result.m365_services?.sharepoint ? "TAK" : "NIE"}</div>
+          <div><b>MX:</b> {result.m365_services?.mx_records?.join(", ")}</div>
+          <details className="mt-2">
+            <summary>Pokaż surową odpowiedź</summary>
+            <pre className="overflow-x-auto">{JSON.stringify(result, null, 2)}</pre>
+          </details>
+        </div>
+      )}
+      {status === "error" && result && (
         <details className="mt-2">
           <summary>Pokaż surową odpowiedź</summary>
           <pre className="overflow-x-auto">{JSON.stringify(result, null, 2)}</pre>
         </details>
-      </div>
-    )}
+      )}
     </form>
   );
 }
