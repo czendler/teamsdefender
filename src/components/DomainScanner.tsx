@@ -15,7 +15,13 @@ type ScanResponse = {
 };
 
 export function DomainScanner({ className = "" }: DomainScannerProps) {
-  const [domain, setDomain] = useState("");
+  const [domain, setDomain] = useState(() => {
+    // Pobierz poprzednią wartość z localStorage, jeśli istnieje
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('lastDomain') || '';
+    }
+    return '';
+  });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState("");
   const [result, setResult] = useState<any | null>(null);
@@ -78,7 +84,12 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
             type="text"
             placeholder="twojadomena.com"
             value={domain}
-            onChange={(e) => setDomain(e.target.value)}
+            onChange={(e) => {
+              setDomain(e.target.value);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('lastDomain', e.target.value);
+              }
+            }}
             className="pr-4 h-12 text-base"
             disabled={status === "loading"}
           />
