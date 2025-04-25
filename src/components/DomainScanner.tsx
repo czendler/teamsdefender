@@ -18,28 +18,30 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
   const [domain, setDomain] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [error, setError] = useState("");
-  
+  const [result, setResult] = useState<any | null>(null);
+
   const validateDomain = (domain: string) => {
     const pattern = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
     return pattern.test(domain);
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
+    setResult(null);
+
     if (!domain) {
       setError("Proszę wprowadzić nazwę domeny");
       return;
     }
-    
+
     if (!validateDomain(domain)) {
       setError("Proszę wprowadzić prawidłową nazwę domeny");
       return;
     }
-    
+
     setStatus("loading");
-    
+
     try {
       const response = await fetch('/api/proxy', {
         method: 'POST',
@@ -48,15 +50,15 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
         },
         body: JSON.stringify({ domain }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      
+
       const data: ScanResponse = await response.json();
-      
       if (data.success) {
         setStatus("success");
+        setResult(data); // zapisz całą odpowiedź
         toast.success("Skan domeny zakończony pomyślnie");
       } else {
         throw new Error(data.error || "Wystąpił błąd podczas skanowania");
@@ -108,6 +110,20 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
           {status === "error" && "Spróbuj ponownie"}
         </Button>
       </div>
+      {result && status === "success" && (
+      <div className="mt-6 p-4 rounded bg-muted text-sm">
+        <div><b>Tenant:</b> {result.tenant}</div>
+        <div><b>Tenant ID:</b> {result.tenant_id}</div>
+        <div><b>Domeny:</b> {Array.isArray(result.domains) ? result.domains.join(", ") : "-"}</div>
+        <div><b>Typ przestrzeni:</b> {result.federation_info?.name_space_type}</div>
+        <div><b>SharePoint:</b> {result.m365_services?.sharepoint ? "TAK" : "NIE"}</div>
+        <div><b>MX:</b> {result.m365_services?.mx_records?.join(", ")}</div>
+        <details className="mt-2">
+          <summary>Pokaż surową odpowiedź</summary>
+          <pre className="overflow-x-auto">{JSON.stringify(result, null, 2)}</pre>
+        </details>
+      </div>
+    )}
     </form>
   );
 }
