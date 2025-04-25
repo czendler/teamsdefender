@@ -80,18 +80,12 @@ export function DomainScanner({ className = "" }: DomainScannerProps) {
             className="pr-4 h-12 text-base"
             disabled={status === "loading"}
           />
-          {error && (
-            <div className="absolute -bottom-6 left-0 text-sm text-red-500 flex flex-col gap-1">
-              <span className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {error}
-              </span>
-              {/* Szczegóły błędu jeśli dostępne */}
-              {status === "error" && error && (
-                <span className="text-xs text-muted-foreground break-all">{error}</span>
-              )}
-            </div>
-          )}
+         {error && (
+  <div className="absolute -bottom-6 left-0 text-sm text-red-500 flex items-center gap-1">
+    <AlertCircle className="h-3 w-3" />
+    {error}
+  </div>
+)}
         </div>
         <Button 
           type="submit" 
