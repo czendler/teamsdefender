@@ -1,75 +1,46 @@
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-interface Env {
-  columbo_az_func_code: string;
-}
-
-export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
-    const request = context.request;
-    const env = context.env;
+    const { domain } = await request.json();
 
-    // Parse request body
-    const data = await request.json();
-    
-    if (!data.domain) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Domain is required" }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
+    if (!domain) {
+      return new Response(JSON.stringify({ error: "Missing 'domain' parameter" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
     }
 
-    // Call Azure Function with the secret code
-    const azureFunctionUrl = `https://columboo.azurewebsites.net/api/httprecon?code=${env.columbo_az_func_code}`;
-    
-    const azureResponse = await fetch(azureFunctionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ domain: data.domain }),
-    });
+    // Pobieramy kod dostępu z Environment Variables
+    const azureFunctionCode = env.columbo_az_func_code;
 
-    const azureData = await azureResponse.json();
-
-    // Return the response from Azure Function
-    return new Response(JSON.stringify(azureData), {
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-
-  } catch (err) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Internal server error",
-      }),
-      {
+    if (!azureFunctionCode) {
+      return new Response(JSON.stringify({ error: "Missing Azure Function code in environment variables" }), {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
-  }
-};
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
-// Handle CORS preflight requests
-export const onRequestOptions: PagesFunction = async () => {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
-};
+    // NOWY URL Twojej funkcji Azure
+    const apiUrl = `https://columboo.azurewebsites.net/api/httprecon?code=${azureFunctionCode}`;
+
+    const azureResponse = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain })
+    });
+
+    const data = await azureResponse.json();
+
+    return new Response(JSON.stringify(data), {
+      status: azureResponse.status,
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
