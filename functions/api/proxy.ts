@@ -41,12 +41,10 @@ export async function onRequestPost(context) {
         }
       );
     } else {
+      const errorData = await azureResponse.json().catch(() => ({}));
       return new Response(
-        JSON.stringify({ success: false, error: data.error || "Azure error", ...data }),
-        {
-          status: azureResponse.status,
-          headers: { "Content-Type": "application/json" }
-        }
+        JSON.stringify({ success: false, error: errorData.error || 'Network response was not ok', ...errorData }),
+        { status: azureResponse.status, headers: { "Content-Type": "application/json" } }
       );
     }
   } catch (error) {
